@@ -6,7 +6,7 @@ window.corrects = [];
 window.incorrects = [];
 window.questionTime = -1;
 window.failed = [];
-window.answered = false;
+window.answerer = null;
 
 var msg_in_group = function(sender, origin, message) {
 	if (is_answer(message.body)) {
@@ -43,7 +43,7 @@ var reset_vars = function(q) {
 	window.incorrects = q.incorrect;
 	window.questionTime = new Date().getTime();
 	window.failed = [];
-	window.answered = false;
+	window.answerer = null;
 };
 
 var send_question = function(q) {
@@ -59,10 +59,43 @@ var answer_q = function(sender, answer) {
 	
 	if (window.questionTime == -1) {
 		API.sendTextMessage(GROUP_ID, sender.__x_pushname + ", אין ברגע זה שאלה פעילה.");
+		return;
+	}
+	
+	if (window.answerer) {
+		API.sendTextMessage(GROUP_ID, sender.__x_pushname + ", שאלה זו כבר נענתה על ידי " + window.answerer.__x_pushname);
+		return;
+	}
+	
+	if (~window.failed.indexOf(sender.__x_id)) {
+		API.sendTextMessage(GROUP_ID, sender.__x_pushname + ", כבר ניסית לענות על שאלה זו.");
+	}
+	
+	var correct = true;
+	for (var i = 0; i < window.corrects.length; i++) {
+		if (!~answer.indexOf(window.corrects[i])) {
+			console.log("correct " + window.corrects[i] + " not here");
+			correct = false;
+		}
+	}
+	for (var i = 0; i < window.incorrects.length; i++) {
+		if (~answer.indexOf(window.incorrects[i])) {
+			console.log("incorrect " + window.incorrects[i] + " here");
+			correct = false;
+		}
+	}
+	
+	if (correct) {
+		window.answerer = sender;
+		API.sendTextMessage(GROUP_ID, sender.__x_pushname + ", תשובה נכונה!");
+	}
+	else {
+		window.failed.push(sender.__x_id);
+		API.sendTextMessage(GROUP_ID, sender.__x_pushname + ", תשובתך אינה נכונה.");
 	}
 };
 
-var random_question = function() {
+window.random_question = function() {
 	if (new Date().getHours() > 21 || new Date().getHours() < 8) {
 		setTimeout(random_question, HOUR);
 		return;

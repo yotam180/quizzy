@@ -573,7 +573,8 @@
 		ready: function() {
 			return new Promise(function(success, error) {
 				var i = setInterval(function() {
-					if (document.getElementsByClassName("avatar-image").length > 0) {
+					//console.log(window["Store"]);
+					if (window["Store"] && window["Store"]["Msg"]) {
 						clearInterval(i);
 						success();
 					}
@@ -583,6 +584,7 @@
 		
 	};
 	
-	API.listener.listen();
-		
+	API.ready().then(function() {
+		API.listener.listen();
+	});
 })();

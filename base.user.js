@@ -87,7 +87,10 @@ var answer_q = function(sender, answer) {
 	
 	if (correct) {
 		window.answerer = sender;
-		API.sendTextMessage(GROUP_ID, sender.__x_pushname + ", תשובה נכונה!");
+		var mins = (new Date().getTime() - window.questionTime) / 60000;
+		var score = Math.max(1, Math.round(20 - mins)); 
+		set_score(sender.__x_id, get_score(sender.__x_id) + score);
+		API.sendTextMessage(GROUP_ID, sender.__x_pushname + ", תשובה נכונה!" + "\nקיבלת " + score + "נקודות.\nעכשיו יש לך " + get_score(sender.__x_id) + " נקודות!");
 	}
 	else {
 		window.failed.push(sender.__x_id);
@@ -109,5 +112,9 @@ API.ready().then(function() {
 		if (origin == GROUP_ID) {
 			msg_in_group(sender, origin, message);
 		}
+	});
+	
+	API.listener.ExternalHandlers.USER_JOIN_GROUP.push(function() {
+		API.sendTextMessage(GROUP_ID, window.HELP_MSG);
 	});
 });

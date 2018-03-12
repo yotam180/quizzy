@@ -95,6 +95,10 @@ var answer_q = function(sender, answer) {
 	else {
 		window.failed.push(sender.__x_id);
 		API.sendTextMessage(GROUP_ID, sender.__x_pushname + ", תשובתך אינה נכונה.");
+		if (window.failed.length > 2) {
+			API.sendTextMessage(GROUP_ID, "הקבוצה נכשלה במענה על השאלה. נא המתינו לשאלה חדשה.");
+			window.questionTime = -1;
+		}
 	}
 };
 
@@ -105,6 +109,10 @@ window.random_question = function() {
 	}
 	
 	send_question(window.questions[Math.round(Math.random() * questions.length - 1)]);
+	
+	var t = 3e5 + Math.random() * 3e5;
+	console.log(t);
+	setTimeout(random_question, t);
 };
 
 API.ready().then(function() {
@@ -114,7 +122,8 @@ API.ready().then(function() {
 		}
 	});
 	
-	API.listener.ExternalHandlers.USER_JOIN_GROUP.push(function() {
+	API.listener.ExternalHandlers.USER_JOIN_GROUP.push(function(o) {
 		API.sendTextMessage(GROUP_ID, window.HELP_MSG);
+		set_score(o.__x_id, 0);
 	});
 });

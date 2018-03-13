@@ -126,13 +126,13 @@ API.ready().then(function() {
 		API.sendTextMessage(GROUP_ID, window.HELP_MSG);
 		set_score(o.__x_id, 0);
 	});
-	
-	
-	document.body.innerHTML += `<div id='btn_rnd' style='z-index: 999999; position: fixed; top: 0; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Send question</div>`;
-	document.body.innerHTML += `<div id='btn_clear' style='z-index: 999999; position: fixed; top: 50px; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Clear group</div>`;
 
-	document.getElementById("btn_rnd").onclick = random_question;
-	document.getElementById("btn_clear").onclick = () => {
-		Core.chat(GROUP_ID).sendClear();
-	};
 });
+	
+document.body.innerHTML += `<div id='i_btn_rnd' style='z-index: 999999; position: fixed; top: 0; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Send question</div>`;
+document.body.innerHTML += `<div id='i_btn_clear' style='z-index: 999999; position: fixed; top: 50px; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Clear group</div>`;
+
+document.getElementById("i_btn_rnd").onclick = random_question;
+document.getElementById("i_btn_clear").onclick = () => {
+	Core.chat(GROUP_ID).sendClear();
+};

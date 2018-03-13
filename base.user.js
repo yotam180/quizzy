@@ -12,6 +12,31 @@ var msg_in_group = function(sender, origin, message) {
 	if (is_answer(message.body)) {
 		answer_q(sender, message.body);
 	}
+	else if (message.body == "דירוג") {
+		leaderboard();
+	}
+};
+
+var scores = function() {
+	var res = [];
+	Core.group(GROUP_ID).participants.models.forEach(x => {
+		
+		var m = Core.contact(x.__x_id);
+		if (!m.__x_pushname) return;
+		
+		res.push({player: m, score: get_score(x.__x_id)});
+	});
+	res.sort((m, n) => n.score - m.score);
+	return res;
+};
+
+var leaderboard = function() {
+	var s = scores();
+	var txt = "*לוח מובילים:*\n";
+	for (var i = 0; i < s.length; i++) {
+		txt += (i + 1) + ". " + s[i].player.__x_pushname + ": " + s[i].score + " נק'\n";
+	}
+	API.sendTextMessage(GROUP_ID, txt);
 };
 
 var is_answer = function(txt) {
@@ -102,9 +127,9 @@ var answer_q = function(sender, answer) {
 	}
 };
 
-window.random_question = function() {
-	if (new Date().getHours() > 21 || new Date().getHours() < 8) {
-		setTimeout(random_question, HOUR);
+window.random_question = function(conservative_hours = false) {
+	if (conservative_hours == true && (new Date().getHours() > 21 || new Date().getHours() < 8)) {
+		setTimeout(() => { random_question(true); }, HOUR);
 		return;
 	}
 	
@@ -131,8 +156,12 @@ API.ready().then(function() {
 	
 document.body.innerHTML += `<div id='i_btn_rnd' style='z-index: 999999; position: fixed; top: 0; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Send question</div>`;
 document.body.innerHTML += `<div id='i_btn_clear' style='z-index: 999999; position: fixed; top: 50px; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Clear group</div>`;
+document.body.innerHTML += `<div id='i_btn_ldb' style='z-index: 999999; position: fixed; top: 100px; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Leaderboard</div>`;
 
 document.getElementById("i_btn_rnd").onclick = random_question;
 document.getElementById("i_btn_clear").onclick = () => {
 	Core.chat(GROUP_ID).sendClear();
+};
+document.getElementById("i_btn_ldb").onclick = () => {
+	leaderboard();
 };

@@ -15,6 +15,9 @@ var msg_in_group = function(sender, origin, message) {
 	else if (message.body == "דירוג") {
 		leaderboard();
 	}
+	else if (message.body == "מצב") {
+		status(Core.contact(sender));
+	}
 };
 
 var scores = function() {
@@ -28,6 +31,13 @@ var scores = function() {
 	});
 	res.sort((m, n) => n.score - m.score);
 	return res;
+};
+
+var status = function(sid) {
+	var v = scores();
+	var i = v.findIndex(x => x.player.__x_id == sid.__x_id);
+	
+	API.sendTextMessage(GROUP_ID, sid.__x_pushname + ", יש לך " + v[i].score + " נקודות, ואתה במקום ה־" + (i + 1));
 };
 
 var leaderboard = function() {

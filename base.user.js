@@ -104,6 +104,7 @@ var answer_q = function(sender, answer) {
 	
 	if (~window.failed.indexOf(sender.__x_id)) {
 		API.sendTextMessage(GROUP_ID, sender.__x_pushname + ", כבר ניסית לענות על שאלה זו.");
+		return;
 	}
 	
 	var correct = true;

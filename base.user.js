@@ -18,6 +18,9 @@ var msg_in_group = function(sender, origin, message) {
 	else if (message.body == "מצב") {
 		status(Core.contact(sender));
 	}
+	else if (message.body == "פודיום") {
+		podium();
+	}
 };
 
 var scores = function() {
@@ -40,10 +43,24 @@ var status = function(sid) {
 	API.sendTextMessage(GROUP_ID, sid.__x_pushname + ", יש לך " + v[i].score + " נקודות, ואתה במקום ה־" + (i + 1));
 };
 
+var podium = function() {
+	var s =scores();
+	if (s.length<3)
+	{
+		API.sendTextMessage(GROUP_ID, "אין מספיק שחקנים כדי להציג פודיום.");
+		return;
+	}
+	var txt = "*פודיום:*\n";
+	txt += "🥇 " + s[0].player.__x_pushname + ": " + s[0].score + " נק'\n";
+	txt += "🥈 " + s[1].player.__x_pushname + ": " + s[1].score + " נק'\n";
+	txt += "🥉 " + s[2].player.__x_pushname + ": " + s[2].score + " נק'\n";
+	API.sendTextMessage(GROUP_ID, txt);
+};
+
 var leaderboard = function() {
 	var s = scores();
 	var txt = "*לוח מובילים:*\n";
-	for (var i = 0; i < s.length; i++) {
+	for (var i = 0; i < s.length && i < 20; i++) {
 		txt += (i + 1) + ". " + s[i].player.__x_pushname + ": " + s[i].score + " נק'\n";
 	}
 	API.sendTextMessage(GROUP_ID, txt);

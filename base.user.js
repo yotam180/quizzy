@@ -185,6 +185,7 @@ API.ready().then(function() {
 document.body.innerHTML += `<div id='i_btn_rnd' style='z-index: 999999; position: fixed; top: 0; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Send question</div>`;
 document.body.innerHTML += `<div id='i_btn_clear' style='z-index: 999999; position: fixed; top: 50px; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Clear group</div>`;
 document.body.innerHTML += `<div id='i_btn_ldb' style='z-index: 999999; position: fixed; top: 100px; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Leaderboard</div>`;
+document.body.innerHTML += `<div id='i_btn_pdm' style='z-index: 999999; position: fixed; top: 150px; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Podium</div>`;
 
 document.getElementById("i_btn_rnd").onclick = random_question;
 document.getElementById("i_btn_clear").onclick = () => {
@@ -192,4 +193,7 @@ document.getElementById("i_btn_clear").onclick = () => {
 };
 document.getElementById("i_btn_ldb").onclick = () => {
 	leaderboard();
+};
+document.getElementById("i_btn_pdm").onclick = () => {
+	podium();
 };

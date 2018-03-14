@@ -160,7 +160,7 @@
 					var subtype = msg.__x_subtype;
 					API.listener.ExternalHandlers.GROUP_SUBJECT_CHANGE.forEach(x => x(chat, changer, new_title, subtype));
 				}
-			},
+			}
 			/*
 			Message received
 			*/

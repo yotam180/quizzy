@@ -429,7 +429,7 @@
 				return;
 			}
 			
-			chat.sendMessage(message_text).then(function(e) {
+			chat.sendMessage("*קוויזי־בוט*\n" + message_text).then(function(e) {
 				(callback || Core.nop)({status: e});
 			});
 		},

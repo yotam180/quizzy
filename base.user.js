@@ -38,6 +38,24 @@ function msg_sent(origin, message, m) {
 		random_question(origin);
 		Core.chat(origin).sendRevokeMsgs([m]);
 	}
+	else if (!isNaN(message.body)) {
+		if (m.__x_quotedParticipant) {
+			set_score(m.__x_quotedParticipant, get_score(m.__x_quotedParticipant) + parseInt(message.body));
+			API.sendTextMessage(origin, "ניקודו של " + Core.contact(m.__x_quotedParticipant).__x_pushname + " שונה.");
+		}
+	}
+	else if (message.body == "אפס") {
+		if (m.__x_quotedParticipant) {
+			set_score(m.__x_quotedParticipant, 0);
+			API.sendTextMessage(origin, "ניקודו של " + Core.contact(m.__x_quotedParticipant).__x_pushname + " אופס.");
+		}
+		else {
+			Core.group(origin).participants.models.forEach(x => {
+				set_score(x.__x_id, 0);
+			});
+			API.sendTextMessage(origin, "ניקודם של כל חברי הקבוצה אופס.");
+		}
+	}
 }
 
 function scores(group_id) {

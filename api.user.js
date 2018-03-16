@@ -122,7 +122,14 @@
 				2. Chat the message was sent at
 				3. Parsed Msg object
 			*/
-			MESSAGE_RECEIVED: []
+			MESSAGE_RECEIVED: [],
+			
+			/*
+			Parameters:
+				1. The chat the message was sent to
+				2. Parsed Msg object
+			*/
+			MESSAGE_SENT: []
 		};
 		
 		/*
@@ -172,6 +179,16 @@
 					var message = msg.__x_id._serialized;
 					console.log(msg);
 					API.listener.ExternalHandlers.MESSAGE_RECEIVED.forEach(x => x(sender, chat, API.parseMsgObject(msg)));
+				}
+			},
+			/*
+			Message sent
+			*/
+			{
+				predicate: msg => msg.__x_isUserCreatedType && !msg.__x_isNotification && msg.__x_isSentByMe,
+				handler: function(msg) {
+					var to = msg.__x_to;
+					API.listener.ExternalHandlers.MESSAGE_SENT.forEach(x => x(to, API.parseMsgObject(msg)));
 				}
 			}
 		];

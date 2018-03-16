@@ -1,4 +1,4 @@
-﻿var GROUP_ID = "972558850336-1515864647@g.us";
+﻿var GROUP_IDS = [];
 
 var HOUR = 3.6e6;
 
@@ -169,17 +169,28 @@ window.random_question = function(conservative_hours = false) {
 };
 
 API.ready().then(function() {
-	API.listener.ExternalHandlers.MESSAGE_RECEIVED.push(function(sender, origin, message) {
-		if (origin == GROUP_ID) {
-			msg_in_group(sender, origin, message);
-		}
-	});
-	
-	API.listener.ExternalHandlers.USER_JOIN_GROUP.push(function(o) {
-		//API.sendTextMessage(GROUP_ID, window.HELP_MSG);
-		set_score(o.__x_id, 0);
-	});
-
+	setTimeout(function() {
+		console.log("Running");
+		GROUP_IDS = API.findChatIds("Quizzy");
+		GROUP_IDS.forEach(x => {
+			Core.group(x).update().then(x => {
+				console.log("Updated ", x);
+			});
+		});
+		
+			
+		API.listener.ExternalHandlers.MESSAGE_RECEIVED.push(function(sender, origin, message) {
+			if (origin == GROUP_ID) {
+				msg_in_group(sender, origin, message);
+			}
+		});
+		
+		API.listener.ExternalHandlers.USER_JOIN_GROUP.push(function(o) {
+			//API.sendTextMessage(GROUP_ID, window.HELP_MSG);
+			set_score(o.__x_id, 0);
+		});
+		
+	}, 5000);
 });
 	
 document.body.innerHTML += `<div id='i_btn_rnd' style='z-index: 999999; position: fixed; top: 0; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Send question</div>`;

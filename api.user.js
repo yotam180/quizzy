@@ -590,7 +590,6 @@
 		ready: function() {
 			return new Promise(function(success, error) {
 				var i = setInterval(function() {
-					//console.log(window["Store"]);
 					if (window["Store"] && window["Store"]["Msg"]) {
 						clearInterval(i);
 						success();

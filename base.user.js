@@ -1,31 +1,48 @@
-﻿var GROUP_IDS = [];
+﻿var GAMES = {};
 
-var HOUR = 3.6e6;
+function game() {
+	return {
+		questionTime: -1,
+		answerer: null,
+		corrects: [],
+		incorrects: [],
+		failed: []
+	};
+}
 
-window.corrects = [];
-window.incorrects = [];
-window.questionTime = -1;
-window.failed = [];
-window.answerer = null;
-
-var msg_in_group = function(sender, origin, message) {
+function msg_received(sender, origin, message) {
+	if (!Object.keys(GAMES).includes(origin)) {
+		return;
+	}
+	
 	if (is_answer(message.body)) {
-		answer_q(sender, message.body);
+		answer_q(origin, sender, message.body);
 	}
 	else if (message.body == "דירוג") {
-		leaderboard();
+		leaderboard(origin);
 	}
 	else if (message.body == "מצב") {
-		status(Core.contact(sender));
+		status(origin, Core.contact(sender));
 	}
 	else if (message.body == "פודיום") {
-		podium();
+		podium(origin);
 	}
-};
+}
 
-var scores = function() {
+function msg_sent(origin, message, m) {
+	if (!Object.keys(GAMES).includes(origin)) {
+		return;
+	}
+	
+	if (message.body == "שאלה") {
+		random_question(origin);
+		Core.chat(origin).sendRevokeMsgs([m]);
+	}
+}
+
+function scores(group_id) {
 	var res = [];
-	Core.group(GROUP_ID).participants.models.forEach(x => {
+	Core.group(group_id).participants.models.forEach(x => {
 		
 		var m = Core.contact(x.__x_id);
 		if (!m.__x_pushname) return;
@@ -34,51 +51,52 @@ var scores = function() {
 	});
 	res.sort((m, n) => n.score - m.score);
 	return res;
-};
-
-var status = function(sid) {
-	var v = scores();
-	var i = v.findIndex(x => x.player.__x_id == sid.__x_id);
 	
-	API.sendTextMessage(GROUP_ID, sid.__x_pushname + ", יש לך " + v[i].score + " נקודות, ואתה במקום ה־" + (i + 1));
-};
+}
 
-var podium = function() {
-	var s =scores();
-	if (s.length<3)
-	{
-		API.sendTextMessage(GROUP_ID, "אין מספיק שחקנים כדי להציג פודיום.");
+function status(group_id, sender_id) {
+	var v = scores(group_id);
+	var i = v.findIndex(x => x.player.__x_id == sender_id.__x_id);
+	
+	API.sendTextMessage(group_id, sender_id.__x_pushname + ", יש לך " + v[i].score + " נקודות, ואתה במקום ה־" + (i + 1));
+}
+
+function podium(group_id) {
+	var s = scores(group_id);
+	if (s.length < 3) {
+		API.sendTextMessage(group_id, "אין מספיק שחקנים כדי להציג פודיום.");
 		return;
 	}
+	
 	var txt = "*פודיום:*\n";
 	txt += "🥇 " + s[0].player.__x_pushname + ": " + s[0].score + " נק'\n";
 	txt += "🥈 " + s[1].player.__x_pushname + ": " + s[1].score + " נק'\n";
 	txt += "🥉 " + s[2].player.__x_pushname + ": " + s[2].score + " נק'\n";
-	API.sendTextMessage(GROUP_ID, txt);
-};
+	API.sendTextMessage(group_id, txt);
+}
 
-var leaderboard = function() {
-	var s = scores();
+function leaderboard(group_id) {
+	var s = scores(group_id);
 	var txt = "*לוח מובילים:*\n";
 	for (var i = 0; i < s.length && i < 20; i++) {
 		txt += (i + 1) + ". " + s[i].player.__x_pushname + ": " + s[i].score + " נק'\n";
 	}
-	API.sendTextMessage(GROUP_ID, txt);
-};
+	API.sendTextMessage(group_id, txt);
+}
 
-var is_answer = function(txt) {
+function is_answer(txt) {
 	return !!txt.match("^[א-ד]{1,3}$");
-};
+}
 
-var get_score = function(id) {
+function get_score(id) {
 	return parseInt(localStorage.getItem("score_" + id) || "0");
-};
+}
 
-var set_score = function(id, score) {
+function set_score(id, score) {
 	localStorage.setItem("score_" + id, score);
-};
+}
 
-var question_txt = function(q) {
+function question_txt(q) {
 	var text = (q.multiple ? "_שאלת בחירה מרובה_\n" : "") + q.cat1 + " .. " + q.cat2 + "\n" + q.sentence + "\n\n" + q.question + "\n";
 	var answerInedxes = "אבגד";
 	for (var i = 0; i < q.answers.length; i++) {
@@ -88,84 +106,79 @@ var question_txt = function(q) {
 	}
 	
 	return text;
-};
+}
 
-var reset_vars = function(q) {
-	window.corrects = q.correct;
-	window.incorrects = q.incorrect;
-	window.questionTime = new Date().getTime();
-	window.failed = [];
-	window.answerer = null;
-};
+function reset_vars(group_id, q) {
+	GAMES[group_id].corrects = q.correct;
+	GAMES[group_id].incorrects = q.incorrect;
+	GAMES[group_id].questionTime = new Date().getTime();
+	GAMES[group_id].failed = [];
+	GAMES[group_id].answerer = null;
+}
 
-var send_question = function(q) {
+function send_question(group_id, q) {
 	var text = question_txt(q);
 	
-	API.sendTextMessage(GROUP_ID, text);
+	API.sendTextMessage(group_id, text);
 	
-	reset_vars(q);
-};
+	reset_vars(group_id, q);
+}
 
-var answer_q = function(sender, answer) {
+function answer_q(group_id, sender, answer) {
 	sender = Core.contact(sender);
 	
-	if (window.questionTime == -1) {
-		API.sendTextMessage(GROUP_ID, sender.__x_pushname + ", אין ברגע זה שאלה פעילה.");
+	if (GAMES[group_id].questionTime == -1) {
+		API.sendTextMessage(group_id, sender.__x_pushname + ", אין ברגע זה שאלה פעילה.");
 		return;
 	}
 	
-	if (window.answerer) {
-		API.sendTextMessage(GROUP_ID, sender.__x_pushname + ", שאלה זו כבר נענתה על ידי " + window.answerer.__x_pushname);
+	if (GAMES[group_id].answerer) {
+		API.sendTextMessage(group_id, sender.__x_pushname + ", שאלה זו כבר נענתה על ידי " + window.answerer.__x_pushname);
 		return;
 	}
 	
-	if (~window.failed.indexOf(sender.__x_id)) {
-		API.sendTextMessage(GROUP_ID, sender.__x_pushname + ", כבר ניסית לענות על שאלה זו.");
+	if (~GAMES[group_id].failed.indexOf(sender.__x_id)) {
+		API.sendTextMessage(group_id, sender.__x_pushname + ", כבר ניסית לענות על שאלה זו.");
 		return;
 	}
 	
 	var correct = true;
-	for (var i = 0; i < window.corrects.length; i++) {
-		if (!~answer.indexOf(window.corrects[i])) {
-			console.log("correct " + window.corrects[i] + " not here");
+	for (var i = 0; i < GAMES[group_id].corrects.length; i++) {
+		if (!~answer.indexOf(GAMES[group_id].corrects[i])) {
+			console.log("correct " + GAMES[group_id].corrects[i] + " not here");
 			correct = false;
 		}
 	}
-	for (var i = 0; i < window.incorrects.length; i++) {
-		if (~answer.indexOf(window.incorrects[i])) {
-			console.log("incorrect " + window.incorrects[i] + " here");
+	for (var i = 0; i < GAMES[group_id].incorrects.length; i++) {
+		if (~answer.indexOf(GAMES[group_id].incorrects[i])) {
+			console.log("incorrect " + GAMES[group_id].incorrects[i] + " here");
 			correct = false;
 		}
 	}
 	
 	if (correct) {
-		window.answerer = sender;
-		var mins = (new Date().getTime() - window.questionTime) / 60000;
-		var score = Math.max(1, Math.round(20 - mins)); 
+		GAMES[group_id].answerer = sender;
+		var mins = (new Date().getTime() - GAMES[group_id].questionTime) / 60000;
+		var score = Math.ceil(100 / (mins + 0.5));
 		set_score(sender.__x_id, get_score(sender.__x_id) + score);
-		API.sendTextMessage(GROUP_ID, sender.__x_pushname + ", תשובה נכונה!" + "\nקיבלת " + score + "נקודות.\nעכשיו יש לך " + get_score(sender.__x_id) + " נקודות!");
+		API.sendTextMessage(group_id, sender.__x_pushname + ", תשובה נכונה!" + "\nקיבלת " + score + "נקודות.\nעכשיו יש לך " + get_score(sender.__x_id) + " נקודות!");
 	}
 	else {
-		window.failed.push(sender.__x_id);
-		API.sendTextMessage(GROUP_ID, sender.__x_pushname + ", תשובתך אינה נכונה.");
-		if (window.failed.length > 2) {
-			API.sendTextMessage(GROUP_ID, "הקבוצה נכשלה במענה על השאלה. נא המתינו לשאלה חדשה.");
-			window.questionTime = -1;
+		GAMES[group_id].failed.push(sender.__x_id);
+		API.sendTextMessage(group_id, sender.__x_pushname + ", תשובתך אינה נכונה.");
+		if (GAMES[group_id].failed.length > 2) {
+			API.sendTextMessage(group_id, "הקבוצה נכשלה במענה על השאלה. נא המתינו לשאלה חדשה.");
+			GAMES[group_id].questionTime = -1;
 		}
 	}
-};
+}
 
-window.random_question = function(conservative_hours = false) {
+window.random_question = function(group_id, conservative_hours = false) {
 	if (conservative_hours == true && (new Date().getHours() > 21 || new Date().getHours() < 8)) {
-		setTimeout(() => { random_question(true); }, HOUR);
 		return;
 	}
 	
-	send_question(window.questions[Math.round(Math.random() * questions.length - 1)]);
-	
-	var t = 3e5 + Math.random() * 3e5;
-	console.log(t);
-	//setTimeout(random_question, t);
+	send_question(group_id, window.questions[Math.round(Math.random() * questions.length - 1)]);
 };
 
 API.ready().then(function() {
@@ -173,17 +186,15 @@ API.ready().then(function() {
 		console.log("Running");
 		GROUP_IDS = API.findChatIds("Quizzy");
 		GROUP_IDS.forEach(x => {
-			Core.group(x).update().then(x => {
+			Core.group(x).update().then(y => {
 				console.log("Updated ", x);
+				GAMES[x] = game();
 			});
 		});
 		
 			
-		API.listener.ExternalHandlers.MESSAGE_RECEIVED.push(function(sender, origin, message) {
-			if (origin == GROUP_ID) {
-				msg_in_group(sender, origin, message);
-			}
-		});
+		API.listener.ExternalHandlers.MESSAGE_RECEIVED.push(msg_received);
+		API.listener.ExternalHandlers.MESSAGE_SENT.push(msg_sent);
 		
 		API.listener.ExternalHandlers.USER_JOIN_GROUP.push(function(o) {
 			//API.sendTextMessage(GROUP_ID, window.HELP_MSG);
@@ -192,20 +203,3 @@ API.ready().then(function() {
 		
 	}, 5000);
 });
-	
-document.body.innerHTML += `<div id='i_btn_rnd' style='z-index: 999999; position: fixed; top: 0; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Send question</div>`;
-document.body.innerHTML += `<div id='i_btn_clear' style='z-index: 999999; position: fixed; top: 50px; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Clear group</div>`;
-document.body.innerHTML += `<div id='i_btn_ldb' style='z-index: 999999; position: fixed; top: 100px; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Leaderboard</div>`;
-document.body.innerHTML += `<div id='i_btn_pdm' style='z-index: 999999; position: fixed; top: 150px; right: 0; height: 30px; width: 10%; background-color: gray; margin: 20px; border-radius: 20px; text-align: center; color: white; line-height: 30px; cursor: pointer;'>Podium</div>`;
-document.body.innerHTML += `<img src='` + window.QUIZZY_LOGO + `' style='height: 100px; width: auto;'></img>`;
-
-document.getElementById("i_btn_rnd").onclick = random_question;
-document.getElementById("i_btn_clear").onclick = () => {
-	Core.chat(GROUP_ID).sendClear();
-};
-document.getElementById("i_btn_ldb").onclick = () => {
-	leaderboard();
-};
-document.getElementById("i_btn_pdm").onclick = () => {
-	podium();
-};

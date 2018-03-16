@@ -188,7 +188,7 @@
 				predicate: msg => msg.__x_isUserCreatedType && !msg.__x_isNotification && msg.__x_isSentByMe,
 				handler: function(msg) {
 					var to = msg.__x_to;
-					API.listener.ExternalHandlers.MESSAGE_SENT.forEach(x => x(to, API.parseMsgObject(msg)));
+					API.listener.ExternalHandlers.MESSAGE_SENT.forEach(x => x(to, API.parseMsgObject(msg), msg));
 				}
 			}
 		];

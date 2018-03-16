@@ -199,6 +199,15 @@ window.random_question = function(group_id, conservative_hours = false) {
 	send_question(group_id, window.questions[Math.round(Math.random() * questions.length - 1)]);
 };
 
+function cycle(group_id) {
+	var time = Math.random() * 5e5 + 3e5;
+	console.log("Cycle " + group_id, new Date(new Date().getTime() + time).toString());
+	setTimeout(() => { 
+		random_question(group_id);
+		cycle(group_id); 
+	}, time);
+}
+
 API.ready().then(function() {
 	setTimeout(function() {
 		console.log("Running");
@@ -207,6 +216,7 @@ API.ready().then(function() {
 			Core.group(x).update().then(y => {
 				console.log("Updated ", x);
 				GAMES[x] = game();
+				cycle(x);
 			});
 		});
 		

@@ -142,7 +142,8 @@
 			{
 				predicate: msg => msg.__x_isNotification && msg.__x_eventType == "i" && msg.__x_type == "gp2",
 				handler: function(msg) {
-					var is_join = Core.chat(msg.chat.__x_id).isGroup && !!Core.find(Core.group(msg.chat.__x_id).participants, x => msg.recipients && x.__x_id == msg.recipients[0]); // If anyone has a better way to implement this one, please help!
+					var is_join = msg.__x_subtype == "add" || msg.__x_subtype == "invite";
+					var is_leave = msg.__x_subtype == "leave" || msg.__x_subtype == "remove";
 					var object = msg.__x_recipients[0];
 					var subject = msg.__x_sender;
 					var chat = msg.chat.__x_id;
@@ -150,7 +151,7 @@
 					if (is_join) {
 						API.listener.ExternalHandlers.USER_JOIN_GROUP.forEach(x => x(object, subject, chat));
 					}
-					else {
+					else if (is_leave) {
 						API.listener.ExternalHandlers.USER_LEAVE_GROUP.forEach(x => x(object, subject, chat));
 					}
 				}

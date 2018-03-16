@@ -214,8 +214,13 @@ API.ready().then(function() {
 		API.listener.ExternalHandlers.MESSAGE_RECEIVED.push(msg_received);
 		API.listener.ExternalHandlers.MESSAGE_SENT.push(msg_sent);
 		
-		API.listener.ExternalHandlers.USER_JOIN_GROUP.push(function(o) {
-			//API.sendTextMessage(GROUP_ID, window.HELP_MSG);
+		API.listener.ExternalHandlers.USER_JOIN_GROUP.push(function(o, s, origin) {
+			if (!Object.keys(GAMES).includes(origin)) {
+				return;
+			}
+	
+	
+			API.sendTextMessage(origin, Core.contact(o).__x_pushname + ", " + window.HELP_MSG);
 			set_score(o.__x_id, 0);
 		});
 		

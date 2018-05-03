@@ -27,6 +27,9 @@ function msg_received(sender, origin, message) {
 	else if (message.body == "פודיום") {
 		podium(origin);
 	}
+	else if (message.body == "עזרה") {
+		API.sendTextMessage(origin, window.CMDS_MSG);
+	}
 }
 
 function msg_sent(origin, message, m) {
@@ -55,6 +58,12 @@ function msg_sent(origin, message, m) {
 			});
 			API.sendTextMessage(origin, "ניקודם של כל חברי הקבוצה אופס.");
 		}
+	}
+	else if (message.body == "דירוג") {
+		leaderboard(origin);
+	}
+	else if (message.body == "פודיום") {
+		podium(origin);
 	}
 }
 
@@ -151,7 +160,7 @@ function answer_q(group_id, sender, answer) {
 	}
 	
 	if (GAMES[group_id].answerer) {
-		API.sendTextMessage(group_id, sender.__x_pushname + ", שאלה זו כבר נענתה על ידי " + window.answerer.__x_pushname);
+		API.sendTextMessage(group_id, sender.__x_pushname + ", שאלה זו כבר נענתה על ידי " + GAMES[group_id].answerer.__x_pushname);
 		return;
 	}
 	
@@ -208,7 +217,7 @@ function cycle(group_id) {
 	}, time);
 }
 
-API.ready().then(function() {
+function ready() {
 	setTimeout(function() {
 		console.log("Running");
 		GROUP_IDS = API.findChatIds("Quizzy");
@@ -235,4 +244,16 @@ API.ready().then(function() {
 		});
 		
 	}, 5000);
-});
+}
+
+function test() {
+	if (window["API"]) {
+		console.log("Starting bot");
+		ready();
+	}
+	else {
+		setTimeout(test, 100);
+	}
+}
+
+test();

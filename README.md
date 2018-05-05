@@ -1,10 +1,10 @@
-<center>
+<p align="center">
 
 <img src="https://i.imgur.com/rTVGVgr.jpg" width="400px" height="160px" />
 
 # A social collaborative exam preparation platform.
 
-</center>
+</p>
 
 ## What is Quizzy?
 Quizzy connects students for studying for exams in a fun, gamificated way. It's easy to play and to install!

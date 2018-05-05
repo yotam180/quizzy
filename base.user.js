@@ -10,6 +10,8 @@ function game() {
 	};
 }
 
+window.ASKING = false;
+
 function msg_received(sender, origin, message) {
 	if (!Object.keys(GAMES).includes(origin)) {
 		return;
@@ -48,6 +50,19 @@ function msg_received(sender, origin, message) {
 	}
 	else if (message.body == "פונג") {
 		send_msg(origin, "לא אחי 🏓")
+	}
+	else if (message.body == "שאלה") {
+		if (window.ASKING) {
+			if (GAMES[origin].answerer || GAMES[origin].questionTime == -1) {
+				random_question(origin);
+			}
+			else {
+				send_msg(origin, "לא ניתן לבקש שאלה לפני שהקודמת נפתרה.");
+			}
+		}
+		else {
+			send_msg(origin, "אין באפשרותך לבקש שאלה כרגע.");
+		}
 	}
 	else if (message.body.startsWith(":")) {
 		var name = message.body.substr(1);
@@ -108,6 +123,21 @@ function msg_sent(origin, message, m) {
 	}
 	else if (message.body == "פינג") {
 		send_msg(origin, "פונג 🏓")
+	}
+	else if (message.body == "אפשר שאלה") {
+		window.ASKING = true;
+		send_msg(origin, "הפקודה 'שאלה' עכשיו זמינה גם לשחקנים.");
+	}
+	else if (message.body == "אי אפשר שאלה") {
+		window.ASKING = false;
+		send_msg(origin, "הפקודה 'שאלה' לא זמינה יותר לשחקנים.");
+	}
+	else if (message.body.startsWith("הודעה")) {
+		var msg = message.body.substr(6);
+		for (var k in GAMES) if (GAMES.hasOwnProperty(k)) {
+			API.sendTextMessage(k, "*הודעת מערכת*\n" + msg);
+		}
+		Core.chat(origin).sendRevokeMsgs([m]);
 	}
 }
 

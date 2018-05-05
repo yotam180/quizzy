@@ -1,6 +1,6 @@
 <p align="center">
 
-<img src="https://i.imgur.com/rTVGVgr.jpg" width="400px" height="160px" />
+<img src="https://i.imgur.com/rTVGVgr.jpg" width="400px" height="120px" />
 
 # A social collaborative exam preparation platform.
 
